@@ -282,6 +282,39 @@
     <div id="bloodResults"></div>
   </section>
 
+  <!-- 소변검사 -->
+  <section class="card">
+    <h2><span class="idx">3</span> 소변검사</h2>
+    <p class="ref" style="margin-bottom:14px;">대상: 전체 학년. 약양성(±)은 정상으로 처리됩니다. 둘 다 양성이면 신장 질환 동반 의심으로 더 강하게 표시됩니다.</p>
+
+    <div class="row">
+      <div class="field">
+        <label for="urineProtein">요단백</label>
+        <select id="urineProtein">
+          <option value="neg">음성 (–)</option>
+          <option value="trace">약양성 (±)</option>
+          <option value="pos1">양성 (1+)</option>
+          <option value="pos2">양성 (2+)</option>
+          <option value="pos3">양성 (3+)</option>
+          <option value="pos4">양성 (4+)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="urineBlood">요잠혈</label>
+        <select id="urineBlood">
+          <option value="neg">음성 (–)</option>
+          <option value="trace">약양성 (±)</option>
+          <option value="pos1">양성 (1+)</option>
+          <option value="pos2">양성 (2+)</option>
+          <option value="pos3">양성 (3+)</option>
+          <option value="pos4">양성 (4+)</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="urineResults"></div>
+  </section>
+
   <footer class="actions">
     <button id="resetBtn" type="button">전체 초기화</button>
   </footer>
@@ -452,13 +485,63 @@
     .forEach(el => el.addEventListener('input', calcBlood));
   age10Select.addEventListener('change', calcBlood);
 
+  // ---- 소변검사 (요단백, 요잠혈 — 약양성은 정상 처리) ----
+  const urineProteinSelect = document.getElementById('urineProtein');
+  const urineBloodSelect = document.getElementById('urineBlood');
+  const urineResults = document.getElementById('urineResults');
+
+  function isPositive(value) {
+    return value.startsWith('pos');
+  }
+
+  function urineLabel(value) {
+    const map = { neg: '음성 (–)', trace: '약양성 (±)', pos1: '양성 (1+)', pos2: '양성 (2+)', pos3: '양성 (3+)', pos4: '양성 (4+)' };
+    return map[value];
+  }
+
+  function calcUrine() {
+    const protein = urineProteinSelect.value;
+    const blood = urineBloodSelect.value;
+    const proteinPos = isPositive(protein);
+    const bloodPos = isPositive(blood);
+
+    let html = '';
+
+    if (proteinPos && bloodPos) {
+      html += resultBlock('danger',
+        '단백뇨 + 혈뇨 <span class="arrow">↑</span> 동시 양성',
+        '요단백 ' + urineLabel(protein) + ', 요잠혈 ' + urineLabel(blood) + '. 신장 질환 동반 의심으로 정밀검사를 권고하세요.');
+    } else {
+      if (proteinPos) {
+        html += resultBlock('danger', '단백뇨 <span class="arrow">↑</span> ' + urineLabel(protein), '정밀검사 요함입니다.');
+      } else {
+        html += resultBlock('ok', '요단백 정상 (' + urineLabel(protein) + ')', '');
+      }
+
+      if (bloodPos) {
+        html += resultBlock('danger', '혈뇨(잠혈) <span class="arrow">↑</span> ' + urineLabel(blood), '정밀검사 요함입니다.');
+      } else {
+        html += resultBlock('ok', '요잠혈 정상 (' + urineLabel(blood) + ')', '');
+      }
+    }
+
+    urineResults.innerHTML = html;
+  }
+
+  urineProteinSelect.addEventListener('change', calcUrine);
+  urineBloodSelect.addEventListener('change', calcUrine);
+  calcUrine(); // 초기 상태(둘 다 음성)도 바로 보여주기
+
   // ---- 초기화 ----
   document.getElementById('resetBtn').addEventListener('click', () => {
     [heightInput, weightInput, hbInput, glucoseInput, tcInput, hdlInput, tgInput, ldlInput, astInput, altInput]
       .forEach(el => el.value = '');
     age10Select.value = 'over';
+    urineProteinSelect.value = 'neg';
+    urineBloodSelect.value = 'neg';
     clearResult(bmiResult);
     bloodResults.innerHTML = '';
+    calcUrine();
   });
 </script>
 </body>
