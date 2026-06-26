@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>학생 건강검사 결과 확인</title>
+<style>
+  :root {
+    --ink: #1c2b2d;
+    --paper: #f6f3ec;
+    --line: #d8d2c2;
+    --teal: #1f6f6b;
+    --teal-deep: #134a47;
+    --amber: #b8762c;
+    --danger: #b3382c;
+    --danger-bg: #fbeae7;
+    --ok: #2f7a4f;
+    --ok-bg: #eaf3ec;
+    --watch-bg: #fbf3e3;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 32px 16px 80px;
+  }
+
+  .wrap {
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  header.page-head {
+    border-bottom: 3px solid var(--ink);
+    padding-bottom: 16px;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  header.page-head h1 {
+    font-size: 22px;
+    letter-spacing: -0.02em;
+    margin: 0;
+  }
+
+  header.page-head .tag {
+    font-size: 12px;
+    color: var(--teal-deep);
+    background: #e4eeec;
+    padding: 4px 10px;
+    border-radius: 100px;
+    white-space: nowrap;
+  }
+
+  .notice {
+    font-size: 12.5px;
+    color: #6b6356;
+    background: #efe9d8;
+    border-left: 3px solid var(--amber);
+    padding: 10px 14px;
+    margin-bottom: 28px;
+    line-height: 1.55;
+  }
+
+  section.card {
+    background: #fffdf8;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 22px 22px 24px;
+    margin-bottom: 20px;
+  }
+
+  section.card h2 {
+    font-size: 15px;
+    margin: 0 0 16px;
+    color: var(--teal-deep);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  section.card h2 .idx {
+    font-size: 11px;
+    background: var(--teal-deep);
+    color: #fff;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-weight: 700;
+  }
+
+  .row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+
+  .field {
+    flex: 1;
+    min-width: 120px;
+  }
+
+  .field label {
+    display: block;
+    font-size: 12.5px;
+    color: #5a5448;
+    margin-bottom: 6px;
+  }
+
+  .field input, .field select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    font-size: 15px;
+    background: #fff;
+    color: var(--ink);
+  }
+
+  .field input:focus, .field select:focus {
+    outline: 2px solid var(--teal);
+    outline-offset: 1px;
+    border-color: var(--teal);
+  }
+
+  .result {
+    margin-top: 14px;
+    padding: 14px 16px;
+    border-radius: 8px;
+    font-size: 14.5px;
+    line-height: 1.5;
+    display: none;
+  }
+
+  .result.show { display: block; }
+
+  .result .headline {
+    font-size: 17px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+
+  .result.ok { background: var(--ok-bg); color: var(--ok); }
+  .result.watch { background: var(--watch-bg); color: var(--amber); }
+  .result.danger { background: var(--danger-bg); color: var(--danger); }
+
+  .result .sub {
+    color: var(--ink);
+    font-weight: 400;
+    font-size: 13.5px;
+    opacity: 0.85;
+  }
+
+  .arrow {
+    font-size: 19px;
+  }
+
+  .ref {
+    font-size: 11.5px;
+    color: #8a8275;
+    margin-top: 10px;
+  }
+
+  footer.actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 8px;
+  }
+
+  footer.actions button {
+    background: none;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    padding: 9px 16px;
+    font-size: 13px;
+    color: #6b6356;
+    cursor: pointer;
+  }
+
+  footer.actions button:hover {
+    border-color: var(--ink);
+    color: var(--ink);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="page-head">
+    <h1>학생 건강검사 결과 확인</h1>
+    <span class="tag">개인 보관용 · 저장 안 됨</span>
+  </header>
+
+  <p class="notice">
+    이름·학번 등 개인정보는 입력하지 않습니다. 입력한 수치는 화면을 닫으면 사라지며 어디에도 저장되지 않습니다.
+    판정 기준은 교육부 「2022 초·중·고등학교 학생 건강검사 분석」 보고서의 공식 기준표를 따릅니다.
+  </p>
+
+  <!-- BMI -->
+  <section class="card">
+    <h2><span class="idx">1</span> BMI 계산</h2>
+    <div class="row">
+      <div class="field">
+        <label for="height">키 (cm)</label>
+        <input type="number" id="height" placeholder="예: 162" inputmode="decimal">
+      </div>
+      <div class="field">
+        <label for="weight">몸무게 (kg)</label>
+        <input type="number" id="weight" placeholder="예: 54" inputmode="decimal">
+      </div>
+    </div>
+    <div class="result" id="bmiResult"></div>
+    <p class="ref" style="margin-top:10px;">※ 이 계산기는 성인 BMI 기준(18.5/23/25)을 사용합니다. 교육부 기준은 소아·청소년 성장도표의 연령별·성별 백분위수를 사용하므로, 학생 정밀 판정 시에는 차이가 있을 수 있습니다.</p>
+  </section>
+
+  <!-- 혈액검사 (혈색소 + 과체중·비만 학생 대상 5항목) -->
+  <section class="card">
+    <h2><span class="idx">2</span> 혈액검사</h2>
+    <p class="ref" style="margin-bottom:14px;">혈색소: 고1 여학생 대상 / 그 외 항목: 초4·중1·고1 과체중·비만 학생 대상. 정밀검사 요함 기준 초과 시 빨간색으로 표시됩니다.</p>
+
+    <div class="row">
+      <div class="field">
+        <label for="hb">혈색소 (g/dL)</label>
+        <input type="number" id="hb" placeholder="예: 10.2" step="0.1" inputmode="decimal">
+      </div>
+      <div class="field">
+        <label for="glucose">공복혈당 (mg/dL)</label>
+        <input type="number" id="glucose" placeholder="예: 95" inputmode="decimal">
+      </div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label for="tc">총콜레스테롤 (mg/dL)</label>
+        <input type="number" id="tc" placeholder="예: 180" inputmode="decimal">
+      </div>
+      <div class="field">
+        <label for="hdl">HDL 콜레스테롤 (mg/dL)</label>
+        <input type="number" id="hdl" placeholder="예: 42" inputmode="decimal">
+      </div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label for="tg">중성지방 TG (mg/dL)</label>
+        <input type="number" id="tg" placeholder="예: 100" inputmode="decimal">
+      </div>
+      <div class="field">
+        <label for="ldl">LDL 콜레스테롤 (mg/dL)</label>
+        <input type="number" id="ldl" placeholder="예: 115" inputmode="decimal">
+      </div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label for="ast">AST (SGOT) (U/L)</label>
+        <input type="number" id="ast" placeholder="예: 25" inputmode="decimal">
+      </div>
+      <div class="field">
+        <label for="alt">ALT (SGPT) (U/L)</label>
+        <input type="number" id="alt" placeholder="예: 20" inputmode="decimal">
+      </div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label for="age10">나이 (AST 기준에 사용)</label>
+        <select id="age10">
+          <option value="over">10세 이상</option>
+          <option value="under">10세 미만</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="bloodResults"></div>
+  </section>
+
+  <footer class="actions">
+    <button id="resetBtn" type="button">전체 초기화</button>
+  </footer>
+
+</div>
+
+<script>
+  function setResult(el, level, headline, sub, refText) {
+    el.className = 'result show ' + level;
+    el.innerHTML =
+      '<div class="headline">' + headline + '</div>' +
+      (sub ? '<div class="sub">' + sub + '</div>' : '') +
+      (refText ? '<div class="ref">' + refText + '</div>' : '');
+  }
+
+  function clearResult(el) {
+    el.className = 'result';
+    el.innerHTML = '';
+  }
+
+  function resultBlock(level, headline, sub) {
+    return '<div class="result show ' + level + '" style="margin-top:10px;">' +
+      '<div class="headline">' + headline + '</div>' +
+      (sub ? '<div class="sub">' + sub + '</div>' : '') +
+      '</div>';
+  }
+
+  // ---- BMI ----
+  const heightInput = document.getElementById('height');
+  const weightInput = document.getElementById('weight');
+  const bmiResult = document.getElementById('bmiResult');
+
+  function calcBmi() {
+    const h = parseFloat(heightInput.value);
+    const w = parseFloat(weightInput.value);
+    if (!h || !w || h <= 0 || w <= 0) { clearResult(bmiResult); return; }
+
+    const bmi = w / Math.pow(h / 100, 2);
+    const bmiRounded = bmi.toFixed(1);
+
+    let level, headline, sub;
+    if (bmi < 18.5) {
+      level = 'watch';
+      headline = '저체중 <span class="arrow">↓</span> ' + bmiRounded;
+      sub = '표준 체중보다 낮습니다. 식생활 상담을 권고하세요.';
+    } else if (bmi < 23) {
+      level = 'ok';
+      headline = '정상 ' + bmiRounded;
+      sub = '표준 범위 안에 있습니다.';
+    } else if (bmi < 25) {
+      level = 'watch';
+      headline = '과체중 <span class="arrow">↑</span> ' + bmiRounded;
+      sub = '표준 체중보다 높은 편입니다. 관찰이 필요합니다.';
+    } else {
+      level = 'danger';
+      headline = '비만 <span class="arrow">↑</span> ' + bmiRounded;
+      sub = '비만 범위입니다. 보호자 안내 및 후속 상담을 권고하세요.';
+    }
+    setResult(bmiResult, level, headline, sub, '');
+  }
+
+  heightInput.addEventListener('input', calcBmi);
+  weightInput.addEventListener('input', calcBmi);
+
+  // ---- 혈액검사 (혈색소 + 과체중·비만 학생 대상 5항목, 교육부 공식 기준) ----
+  const hbInput = document.getElementById('hb');
+  const glucoseInput = document.getElementById('glucose');
+  const tcInput = document.getElementById('tc');
+  const hdlInput = document.getElementById('hdl');
+  const tgInput = document.getElementById('tg');
+  const ldlInput = document.getElementById('ldl');
+  const astInput = document.getElementById('ast');
+  const altInput = document.getElementById('alt');
+  const age10Select = document.getElementById('age10');
+  const bloodResults = document.getElementById('bloodResults');
+
+  function judge(value, label, unit, normalText, watchRange, dangerCheck, watchCheck) {
+    if (isNaN(value)) return '';
+    if (dangerCheck(value)) {
+      return resultBlock('danger', label + ' <span class="arrow">↑</span> ' + value + ' ' + unit, '정밀검사 요함 기준 초과 (' + normalText + ')');
+    }
+    if (watchCheck && watchCheck(value)) {
+      return resultBlock('watch', label + ' 경계 ' + value + ' ' + unit, '정상(경계) 구간입니다. (' + normalText + ')');
+    }
+    return resultBlock('ok', label + ' 정상 ' + value + ' ' + unit, '');
+  }
+
+  function calcBlood() {
+    let html = '';
+
+    const hb = parseFloat(hbInput.value);
+    if (!isNaN(hb)) {
+      if (hb < 12.0) {
+        html += resultBlock('danger', '혈색소 <span class="arrow">↓</span> ' + hb + ' g/dL', '빈혈 의심 (교육부 기준 12.0 미만, 고1 여학생 대상)');
+      } else {
+        html += resultBlock('ok', '혈색소 정상 ' + hb + ' g/dL', '');
+      }
+    }
+
+    const glucose = parseFloat(glucoseInput.value);
+    if (!isNaN(glucose)) {
+      html += judge(glucose, '공복혈당', 'mg/dL', '정상 <100 / 경계 100~125 / 요함 ≥126',
+        null,
+        v => v >= 126,
+        v => v >= 100);
+    }
+
+    const tc = parseFloat(tcInput.value);
+    if (!isNaN(tc)) {
+      html += judge(tc, '총콜레스테롤', 'mg/dL', '정상 <170 / 경계 170~199 / 요함 ≥200',
+        null,
+        v => v >= 200,
+        v => v >= 170);
+    }
+
+    const hdl = parseFloat(hdlInput.value);
+    if (!isNaN(hdl)) {
+      // HDL은 반대 방향: 낮을수록 나쁨
+      if (hdl < 40) {
+        html += resultBlock('danger', 'HDL콜레스테롤 <span class="arrow">↓</span> ' + hdl + ' mg/dL', '정밀검사 요함 기준 미달 (정상 >45 / 경계 40~45 / 요함 <40)');
+      } else if (hdl <= 45) {
+        html += resultBlock('watch', 'HDL콜레스테롤 경계 ' + hdl + ' mg/dL', '정상(경계) 구간입니다. (정상 >45 / 경계 40~45 / 요함 <40)');
+      } else {
+        html += resultBlock('ok', 'HDL콜레스테롤 정상 ' + hdl + ' mg/dL', '');
+      }
+    }
+
+    const tg = parseFloat(tgInput.value);
+    if (!isNaN(tg)) {
+      html += judge(tg, '중성지방(TG)', 'mg/dL', '정상 <90 / 경계 90~129 / 요함 ≥130',
+        null,
+        v => v >= 130,
+        v => v >= 90);
+    }
+
+    const ldl = parseFloat(ldlInput.value);
+    if (!isNaN(ldl)) {
+      html += judge(ldl, 'LDL콜레스테롤', 'mg/dL', '정상 <110 / 경계 110~129 / 요함 ≥130',
+        null,
+        v => v >= 130,
+        v => v >= 110);
+    }
+
+    const ast = parseFloat(astInput.value);
+    if (!isNaN(ast)) {
+      const isOver10 = age10Select.value === 'over';
+      const astLimit = isOver10 ? 45 : 55;
+      if (ast > astLimit) {
+        html += resultBlock('danger', 'AST(SGOT) <span class="arrow">↑</span> ' + ast + ' U/L', '정밀검사 요함 기준(>' + astLimit + ') 초과 (' + (isOver10 ? '10세 이상' : '10세 미만') + ' 기준)');
+      } else {
+        html += resultBlock('ok', 'AST(SGOT) 정상 ' + ast + ' U/L', '');
+      }
+    }
+
+    const alt = parseFloat(altInput.value);
+    if (!isNaN(alt)) {
+      if (alt > 45) {
+        html += resultBlock('danger', 'ALT(SGPT) <span class="arrow">↑</span> ' + alt + ' U/L', '정밀검사 요함 기준(>45) 초과');
+      } else {
+        html += resultBlock('ok', 'ALT(SGPT) 정상 ' + alt + ' U/L', '');
+      }
+    }
+
+    bloodResults.innerHTML = html;
+  }
+
+  [hbInput, glucoseInput, tcInput, hdlInput, tgInput, ldlInput, astInput, altInput, age10Select]
+    .forEach(el => el.addEventListener('input', calcBlood));
+  age10Select.addEventListener('change', calcBlood);
+
+  // ---- 초기화 ----
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    [heightInput, weightInput, hbInput, glucoseInput, tcInput, hdlInput, tgInput, ldlInput, astInput, altInput]
+      .forEach(el => el.value = '');
+    age10Select.value = 'over';
+    clearResult(bmiResult);
+    bloodResults.innerHTML = '';
+  });
+</script>
+</body>
+</html>
